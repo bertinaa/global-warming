@@ -1,0 +1,209 @@
+AWSTemplateFormatVersion: 2010-09-09
+Parameters:
+  SubnetID:
+    Type: String
+Resources:
+  Cluster:
+    Type: "AWS::ECS::Cluster"
+    Properties:
+      ClusterName: deployment-example-cluster
+    Metadata:
+      "AWS::CloudFormation::Designer":
+        id: 2821557e-7a8b-4d30-89e9-8afd23178f06
+  LogGroup:
+    Type: "AWS::Logs::LogGroup"
+    Properties:
+      LogGroupName: deployment-example-log-group
+    Metadata:
+      "AWS::CloudFormation::Designer":
+        id: bebb62fe-cac2-45cb-af84-263016edaf44
+  ExecutionRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: deployment-example-role
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: "sts:AssumeRole"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+    Metadata:
+      "AWS::CloudFormation::Designer":
+        id: 1d6f3f42-d80c-48e4-978f-25233619167c
+  ContainerSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupName: ContainerSecurityGroup
+      GroupDescription: Security group for NGINX container
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+    Metadata:
+      "AWS::CloudFormation::Designer":
+        id: 7632373f-719c-4b9e-80c8-a79866c43280
+  TaskDefinitionApi:
+    Type: "AWS::ECS::TaskDefinition"
+    Properties:
+      Family: api-deployment-task
+      Cpu: 256
+      Memory: 512
+      NetworkMode: awsvpc
+      ExecutionRoleArn: !Ref ExecutionRole
+      ContainerDefinitions:
+        - Name: api-deployment-container
+          Image: >-
+            public.ecr.aws/p7j1g6i3/simple-docker:latest
+          PortMappings:
+            - ContainerPort: 80
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-region: !Ref "AWS::Region"
+              awslogs-group: !Ref LogGroup
+              awslogs-stream-prefix: ecs
+      RequiresCompatibilities:
+        - EC2
+        - FARGATE
+    Metadata:
+      "AWS::CloudFormation::Designer":
+        id: 31e6b92e-5b9b-4df4-b5c2-33150b7d4e72
+  TaskDefinitionUi:
+    Type: "AWS::ECS::TaskDefinition"
+    Properties:
+      Family: ui-deployment-task
+      Cpu: 256
+      Memory: 512
+      NetworkMode: awsvpc
+      ExecutionRoleArn: !Ref ExecutionRole
+      ContainerDefinitions:
+        - Name: ui-deployment-container
+          Image: >-
+            public.ecr.aws/p7j1g6i3/simple-docker:latest
+          PortMappings:
+            - ContainerPort: 80
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-region: !Ref "AWS::Region"
+              awslogs-group: !Ref LogGroup
+              awslogs-stream-prefix: ecs
+      RequiresCompatibilities:
+        - EC2
+        - FARGATE
+    Metadata:
+      "AWS::CloudFormation::Designer":
+        id: 74497b8b-1e67-4667-b208-b233985db118
+  ServiceApi:
+    Type: "AWS::ECS::Service"
+    Properties:
+      ServiceName: api-service
+      Cluster: !Ref Cluster
+      TaskDefinition: !Ref TaskDefinitionApi
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets:
+            - !Ref SubnetID
+          SecurityGroups:
+            - !GetAtt ContainerSecurityGroup.GroupId
+    Metadata:
+      "AWS::CloudFormation::Designer":
+        id: e2827265-4f35-4a16-9f5a-700b82f3d503
+  ServiceUi:
+    Type: "AWS::ECS::Service"
+    Properties:
+      ServiceName: ui-service
+      Cluster: !Ref Cluster
+      TaskDefinition: !Ref TaskDefinitionUi
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets:
+            - !Ref SubnetID
+          SecurityGroups:
+            - !GetAtt ContainerSecurityGroup.GroupId
+    Metadata:
+      "AWS::CloudFormation::Designer":
+        id: fc62c487-9932-4f69-a8d4-f7ae7e35010a
+Metadata:
+  "AWS::CloudFormation::Designer":
+    7632373f-719c-4b9e-80c8-a79866c43280:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 490
+        "y": 100
+      z: 1
+      embeds: []
+    1d6f3f42-d80c-48e4-978f-25233619167c:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 80
+        "y": 200
+      z: 1
+      embeds: []
+    bebb62fe-cac2-45cb-af84-263016edaf44:
+      size:
+        width: 150
+        height: 150
+      position:
+        x: -200
+        "y": 150
+      z: 1
+      embeds: []
+    31e6b92e-5b9b-4df4-b5c2-33150b7d4e72:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 20
+        "y": 320
+      z: 1
+      embeds: []
+    2821557e-7a8b-4d30-89e9-8afd23178f06:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 490
+        "y": 280
+      z: 1
+      embeds: []
+    e2827265-4f35-4a16-9f5a-700b82f3d503:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 250
+        "y": 320
+      z: 1
+      embeds: []
+    74497b8b-1e67-4667-b208-b233985db118:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 20
+        "y": 90
+      z: 1
+      embeds: []
+    fc62c487-9932-4f69-a8d4-f7ae7e35010a:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 240
+        "y": 90
+      z: 1
+      embeds: []
