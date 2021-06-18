@@ -41,3 +41,11 @@ St. Joseph's college of engineering
 Alvis F
 alvisf0731@gmail.com
 St. Joseph's college of engineering
+
+Evangelene M
+evangelene2002@gmail.com
+St.Joseph's college of enginnering
+
+Jaya Varshini 
+jayavarshini@gmail.com
+St. Joseph's college of engineering
